@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>多科目讀書時間統計番茄鐘</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <div>
+        <p class="eyebrow">學習專注・番茄鐘</p>
+        <h1>多科目讀書時間統計番茄鐘</h1>
+        <p class="subtitle">用單頁 Web App 管理科目、記錄讀書番茄鐘、檢視專注時間分配。</p>
+      </div>
+      <nav class="nav-tabs" aria-label="主畫面與管理統計切換">
+        <button id="tab-study" class="tab-button active" type="button">主畫面</button>
+        <button id="tab-dashboard" class="tab-button" type="button">管理統計看板</button>
+      </nav>
+    </header>
+
+    <main>
+      <section id="study-view" class="view-pane">
+        <div class="panel-grid">
+          <div class="panel card-panel">
+            <div class="panel-heading">
+              <h2>專注番茄鐘</h2>
+              <p>選擇科目開始 25 分鐘讀書，完成後可記錄進度。</p>
+            </div>
+
+            <div class="control-group">
+              <label for="subject-select">科目選擇</label>
+              <select id="subject-select"></select>
+            </div>
+
+            <div class="control-group">
+              <label for="duration-select">番茄鐘長度</label>
+              <select id="duration-select">
+                <option value="1">1 分鐘（測試）</option>
+                <option value="25" selected>25 分鐘</option>
+              </select>
+            </div>
+
+            <div class="timer-card">
+              <div id="timer-label" class="timer-label">剩餘時間</div>
+              <div id="timer-display" class="timer-display">25:00</div>
+              <div class="timer-buttons">
+                <button id="start-btn" class="primary-button">開始</button>
+                <button id="pause-btn" class="secondary-button">暫停</button>
+                <button id="reset-btn" class="secondary-button">重設</button>
+              </div>
+            </div>
+
+            <div class="quote-card" aria-live="polite">
+              <div class="quote-icon">“</div>
+              <blockquote id="quote-text" class="quote-text">讀書讓你的專注力成為最溫柔的力量。</blockquote>
+              <div id="quote-source" class="quote-source"></div>
+            </div>
+          </div>
+
+          <div class="panel card-panel task-panel">
+            <div class="panel-heading">
+              <h2>任務字卡</h2>
+              <p>當番茄鐘結束時，自動翻到成果面板。</p>
+            </div>
+
+            <div class="task-card" id="task-card" tabindex="0" aria-live="polite">
+              <div class="card-inner" id="card-inner">
+                <div class="card-face card-front">
+                  <div class="card-face-title">目前專注科目</div>
+                  <div id="current-subject" class="card-face-value">國文</div>
+                  <div class="card-face-hint">開始後，番茄鐘倒數 25 分鐘。</div>
+                </div>
+                <div class="card-face card-back">
+                  <div class="card-face-title">太棒了！</div>
+                  <div id="complete-message" class="card-face-value">你完成了 1 個國文番茄鐘！</div>
+                  <button id="save-session-btn" class="primary-button save-button" type="button">儲存並結算</button>
+                </div>
+              </div>
+            </div>
+            <p class="hint-text">完成後點擊「儲存並結算」記錄專注時間。</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="dashboard-view" class="view-pane hidden">
+        <div class="panel-panel">
+          <div class="panel card-panel">
+            <div class="panel-heading">
+              <h2>手動儲存番茄鐘紀錄</h2>
+              <p>管理者可登記時間與讀書科目後，將資料送到後端儲存。</p>
+            </div>
+            <form id="record-form" class="subject-form">
+              <label for="record-datetime">登記時間</label>
+              <input id="record-datetime" type="datetime-local" required />
+
+              <label for="record-subject-select">讀書科目</label>
+              <select id="record-subject-select"></select>
+
+              <button type="submit" class="primary-button">儲存紀錄</button>
+            </form>
+          </div>
+
+          <div class="panel card-panel">
+            <div class="panel-heading">
+              <h2>新增自訂科目</h2>
+              <p>輸入科目名稱後，會自動加入下拉選單。</p>
+            </div>
+            <form id="subject-form" class="subject-form">
+              <label for="subject-input">科目名稱</label>
+              <div class="inline-form-row">
+                <input id="subject-input" type="text" placeholder="例如：物理、自主學習" autocomplete="off" required />
+                <button type="submit" class="primary-button">新增科目</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="panel card-panel">
+            <div class="panel-heading">
+              <h2>各科目專注時間分配</h2>
+              <p>圖表會依據已儲存的番茄鐘歷史自動更新。</p>
+            </div>
+            <div class="chart-container">
+              <canvas id="subject-chart" aria-label="各科目讀書時間分配圓餅圖"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel card-panel history-panel">
+          <div class="panel-heading">
+            <h2>歷史詳細清單</h2>
+            <p>記錄每個番茄鐘完成時間、科目與時長。</p>
+          </div>
+          <div class="history-table-wrap">
+            <table class="history-table">
+              <thead>
+                <tr>
+                  <th>日期時間</th>
+                  <th>科目</th>
+                  <th>專注時間</th>
+                </tr>
+              </thead>
+              <tbody id="history-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
